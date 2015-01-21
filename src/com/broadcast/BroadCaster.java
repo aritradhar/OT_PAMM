@@ -43,7 +43,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class SymmetricKeytGen 
+public class BroadCaster 
 {
 	int counter;
 	String imageDBPath;
@@ -51,10 +51,12 @@ public class SymmetricKeytGen
 	HashMap<String, byte[]> imageKeyMap;
 	//filename and encryption of the file in bytes
 	HashMap<String, byte[]> encImgMap;
+	//filename and encryption of the file in Base64 String mode
+	HashMap<String, String> encImgBase64Map;
 	//file name and key in Base64 String mode
 	HashMap<String, String> imageKeyBase64Map;
 	
-	public SymmetricKeytGen(String imageDBpath)
+	public BroadCaster(String imageDBpath)
 	{
 		this.imageDBPath = imageDBpath;
 		
@@ -66,6 +68,7 @@ public class SymmetricKeytGen
 		imageKeyMap = new HashMap<String, byte[]>();
 		imageKeyBase64Map = new HashMap<String, String>();
 		encImgMap = new HashMap<String, byte[]>();
+		encImgBase64Map = new HashMap<String, String>();
 	}
 	
 	public void generateKey() throws NoSuchAlgorithmException, IOException
@@ -113,6 +116,7 @@ public class SymmetricKeytGen
 			System.arraycopy(iv, 0, ivAttachedCipherText, cipherText.length, iv.length);
 			
 			encImgMap.put(filename, ivAttachedCipherText);
+			encImgBase64Map.put(filename, Base64.encodeBase64URLSafeString(ivAttachedCipherText));
 			
 			//System.out.println(ivAttachedCipherText.length);
 			
@@ -187,7 +191,7 @@ public class SymmetricKeytGen
 		}
 		JSON_IMG_KEY_BASE64.put("ImageBase64KeyMap", jArray);
 		
-		System.out.println(JSON_IMG_KEY_BASE64);
+		System.out.println(JSON_IMG_KEY_BASE64.toString(2));
 		
 		return JSON_IMG_KEY_BASE64;
 	}
@@ -197,7 +201,7 @@ public class SymmetricKeytGen
 	 */
 	public static void main(String[] args) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException, InvalidParameterSpecException, InvalidAlgorithmParameterException 
 	{
-		SymmetricKeytGen skg = new SymmetricKeytGen("C:\\ImageDB");
+		BroadCaster skg = new BroadCaster("C:\\ImageDB");
 		skg.generateKey();
 		//skg.encrypt();
 		//skg.decrypt();
