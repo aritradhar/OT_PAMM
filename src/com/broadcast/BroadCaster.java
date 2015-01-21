@@ -18,6 +18,7 @@ package com.broadcast;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
@@ -141,11 +142,12 @@ public class BroadCaster
 		while(it.hasNext())
 		{
 			String filename = it.next();
-			byte[] key = imageKeyMap.get(filename);
+			byte[] key = Base64.decodeBase64(imageKeyBase64Map.get(filename));
 			
 			SecretKey sec = new SecretKeySpec(key, "AES");
 			
-			byte[] ivAttachedCipherText = encImgMap.get(filename);
+			//byte[] ivAttachedCipherText = encImgMap.get(filename);
+			byte[] ivAttachedCipherText = Base64.decodeBase64(encImgBase64Map.get(filename));
 			
 			byte[] cipherText = Arrays.copyOf(ivAttachedCipherText, ivAttachedCipherText.length - 16);
 			byte[] iv = Arrays.copyOfRange(ivAttachedCipherText, ivAttachedCipherText.length - 16, ivAttachedCipherText.length);
@@ -167,7 +169,7 @@ public class BroadCaster
 		}
 	}
 	
-	public JSONObject JsonImageBase64KeyBuilder()
+	public JSONObject JsonImageBase64KeyBuilder() throws IOException
 	{
 		/*
 		 * JSOn key storage
@@ -191,11 +193,44 @@ public class BroadCaster
 		}
 		JSON_IMG_KEY_BASE64.put("ImageBase64KeyMap", jArray);
 		
-		System.out.println(JSON_IMG_KEY_BASE64.toString(2));
+		//System.out.println(JSON_IMG_KEY_BASE64.toString(2));
+		
+		FileWriter fw = new FileWriter("Key.json");
+		fw.append(JSON_IMG_KEY_BASE64.toString(2));
+		fw.close();
 		
 		return JSON_IMG_KEY_BASE64;
 	}
 	
+	
+	public JSONObject[] JsonEncryptedImgBase64Builder() throws IOException
+	{
+		/*
+		 * Json encrypted cipher text storage
+		 */
+		JSONObject[] JSON_IMG_ENC_BASE64 = new JSONObject[encImgBase64Map.keySet().size()];
+		JSONArray jArray = new JSONArray();
+		
+		int i = 0;
+		Iterator<String> it = encImgBase64Map.keySet().iterator();
+		
+		while(it.hasNext())
+		{
+			JSON_IMG_ENC_BASE64[i] = new JSONObject();
+			
+			String fileName = it.next();
+			String base64CipherText = encImgBase64Map.get(fileName);
+			JSON_IMG_ENC_BASE64[i].put("imgFile", fileName);
+			JSON_IMG_ENC_BASE64[i].put("cipherText", base64CipherText);
+			
+			FileWriter fw = new FileWriter("C:\\Users\\w4j3yyfd\\workspace\\Crypt\\CipherBin\\"+ fileName + "_cipherText.json");
+			fw.append(JSON_IMG_ENC_BASE64[i].toString(2));
+			fw.close();
+			
+		}
+		
+		return JSON_IMG_ENC_BASE64;
+	}
 	/*
 	 * test
 	 */
@@ -203,9 +238,12 @@ public class BroadCaster
 	{
 		BroadCaster skg = new BroadCaster("C:\\ImageDB");
 		skg.generateKey();
-		//skg.encrypt();
-		//skg.decrypt();
+		skg.encrypt();
+		System.out.println("Encryption Done");
+		skg.decrypt();
+		System.out.println("Decryption Done");
 		skg.JsonImageBase64KeyBuilder();
+		skg.JsonEncryptedImgBase64Builder();
 		
 		System.out.println("Done..");
 	}

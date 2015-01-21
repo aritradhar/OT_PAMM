@@ -123,7 +123,7 @@ public class RandomImageGenerator
 		String[] s = {"A", "B", "C", "D"};
 		int[] pos = {100, 300, 100, 200, 100, 30, 100, 40};
 		
-		new RandomImageGenerator(512, 512, 1024);
+		new RandomImageGenerator(512, 512, 2000);
 		System.out.println("done..");
 	}
 }

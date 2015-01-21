@@ -175,7 +175,7 @@ public class Rabin_1N_ObliviousTransfer
 		
 		KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance("RSA");
 		SecureRandom secRand = SecureRandom.getInstance("SHA1PRNG");
-		keyPairGen.initialize(2048, secRand);
+		keyPairGen.initialize(1024, secRand);
 		KeyPair keyPair = keyPairGen.generateKeyPair();
 		
 		PrivateKey sk = keyPair.getPrivate();
@@ -193,7 +193,7 @@ public class Rabin_1N_ObliviousTransfer
 		SecureRandom sec = SecureRandom.getInstance("SHA1PRNG");
 		
 		//random messages
-		byte[][] M = new byte[MAX][512];
+		byte[][] M = new byte[MAX][4];
 		byte[][] MGen = new byte[MAX][512];
 		
 		for(int i = 0; i < MAX; i++)
