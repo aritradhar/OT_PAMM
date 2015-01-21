@@ -13,16 +13,14 @@
 //*************************************************************************************
 
 
-package com.keyGen;
+package com.broadcast;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
-import java.security.AlgorithmParameters;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -40,9 +38,10 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import javax.imageio.ImageIO;
 
 import org.apache.commons.codec.binary.Base64;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class SymmetricKeytGen 
 {
@@ -84,7 +83,7 @@ public class SymmetricKeytGen
 			this.imageKeyBase64Map.put(files[i].getName(), Base64.encodeBase64URLSafeString(keyByte));
 		}
 		
-		System.out.println(imageKeyBase64Map.entrySet());
+		//System.out.println(imageKeyBase64Map.entrySet());
 	}
 	
 	public void encrypt() throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException, InvalidParameterSpecException, InvalidAlgorithmParameterException
@@ -144,7 +143,7 @@ public class SymmetricKeytGen
 			
 			byte[] ivAttachedCipherText = encImgMap.get(filename);
 			
-			byte[] cipherText = Arrays.copyOf(ivAttachedCipherText, ivAttachedCipherText.length - 15);
+			byte[] cipherText = Arrays.copyOf(ivAttachedCipherText, ivAttachedCipherText.length - 16);
 			byte[] iv = Arrays.copyOfRange(ivAttachedCipherText, ivAttachedCipherText.length - 16, ivAttachedCipherText.length);
 			
 			ci.init(Cipher.DECRYPT_MODE, sec, new IvParameterSpec(iv));
@@ -164,6 +163,35 @@ public class SymmetricKeytGen
 		}
 	}
 	
+	public JSONObject JsonImageBase64KeyBuilder()
+	{
+		/*
+		 * JSOn key storage
+		 */
+		//jsonObject for img-key map
+		JSONObject JSON_IMG_KEY_BASE64 = new JSONObject();
+		JSONArray jArray = new JSONArray();
+		
+		Iterator<String> it = imageKeyBase64Map.keySet().iterator();
+		while(it.hasNext())
+		{
+			JSONObject jObject = new JSONObject();
+			
+			String fileName = it.next();
+			String base64Key = imageKeyBase64Map.get(fileName);
+			jObject.put("imgFile", fileName);
+			jObject.put("key", base64Key);
+			
+			jArray.put(jObject);
+			
+		}
+		JSON_IMG_KEY_BASE64.put("ImageBase64KeyMap", jArray);
+		
+		System.out.println(JSON_IMG_KEY_BASE64);
+		
+		return JSON_IMG_KEY_BASE64;
+	}
+	
 	/*
 	 * test
 	 */
@@ -171,8 +199,9 @@ public class SymmetricKeytGen
 	{
 		SymmetricKeytGen skg = new SymmetricKeytGen("C:\\ImageDB");
 		skg.generateKey();
-		skg.encrypt();
-		skg.decrypt();
+		//skg.encrypt();
+		//skg.decrypt();
+		skg.JsonImageBase64KeyBuilder();
 		
 		System.out.println("Done..");
 	}

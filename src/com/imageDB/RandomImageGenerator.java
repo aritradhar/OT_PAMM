@@ -57,6 +57,9 @@ public class RandomImageGenerator
 	{
 		for(int i = 0; i< this.count; i++)
 		{
+			if(i % 100 == 0)
+				System.out.print(i + " ");
+			
 			BufferedImage img = new BufferedImage(this.w, this.h, BufferedImage.TYPE_INT_RGB);
 			Random rand = new Random();
 			
@@ -80,6 +83,8 @@ public class RandomImageGenerator
 			File f = new File("C:\\ImageDB\\autogen_" + i + ".jpg");
 			ImageIO.write(img, "JPEG", f);
 		}
+		
+		System.out.println();
 	}
 	
 	public void makeImgaeWithSpecs() throws IOException
