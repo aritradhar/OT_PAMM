@@ -45,7 +45,7 @@ public class Rabin_1N_ObliviousTransfer
 	 * return n,d,e
 	 * server side
 	 */
-	public static BigInteger[] generateServerKey(int numMsg, int securityParameter) throws NoSuchAlgorithmException, InvalidKeySpecException
+	public static BigInteger[] generateServerKey(int securityParameter) throws NoSuchAlgorithmException, InvalidKeySpecException
 	{
 		KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance("RSA");
 		SecureRandom secRand = SecureRandom.getInstance("SHA1PRNG");
@@ -67,10 +67,10 @@ public class Rabin_1N_ObliviousTransfer
 	 * step 2
 	 * server side
 	 */
-	public BigInteger[] generateRandomMsg(int numMsg)
+	public static BigInteger[] generateRandomMsg(int numMsg, int msg_size)
 	{
 		SecureRandom sec = new SecureRandom();
-		byte[][] M = new byte[numMsg][512];
+		byte[][] M = new byte[numMsg][msg_size];
 		
 		for(int i = 0; i < numMsg; i++)
 		{

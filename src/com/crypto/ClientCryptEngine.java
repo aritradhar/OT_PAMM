@@ -263,7 +263,7 @@ public class ClientCryptEngine
 	@SuppressWarnings("unused")
 	public static void main(String[] args) 
 	{
-		int sz = 128, it = 1000, securityParameter = 1024;
+		int sz = 128, it = 1000, securityParameter = 512;
 
 		BigInteger msg = new BigInteger(sz, new Random());		
 		System.out.println(msg);
@@ -297,6 +297,7 @@ public class ClientCryptEngine
 		int correct = 0, wrong = 0;
 		for(int i = 0 ; i< it; i++)
 		{
+			
 			//msg = new BigInteger(sz, new Random());	
 			startKeyGen = System.currentTimeMillis();
 			ClientCryptEngine C = new ClientCryptEngine(securityParameter, msg);

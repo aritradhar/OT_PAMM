@@ -24,8 +24,15 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.Provider;
+import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.security.Security;
 import java.security.spec.InvalidParameterSpecException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -44,6 +51,8 @@ import org.apache.commons.codec.binary.Base64;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import sun.security.ec.SunEC;
+
 public class BroadCaster 
 {
 	int counter;
@@ -56,6 +65,8 @@ public class BroadCaster
 	HashMap<String, String> encImgBase64Map;
 	//file name and key in Base64 String mode
 	HashMap<String, String> imageKeyBase64Map;
+	//file name and the digital signature in Base64 String mode
+	HashMap<String, String> imageSignatureNase64Map;
 	
 	public BroadCaster(String imageDBpath)
 	{
@@ -70,6 +81,7 @@ public class BroadCaster
 		imageKeyBase64Map = new HashMap<String, String>();
 		encImgMap = new HashMap<String, byte[]>();
 		encImgBase64Map = new HashMap<String, String>();
+		imageSignatureNase64Map = new HashMap<String, String>();
 	}
 	
 	public void generateKey() throws NoSuchAlgorithmException, IOException
@@ -90,7 +102,13 @@ public class BroadCaster
 		//System.out.println(imageKeyBase64Map.entrySet());
 	}
 	
-	public void encrypt() throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException, InvalidParameterSpecException, InvalidAlgorithmParameterException
+	//encrypt and generate signature
+	
+	public void encrypt() throws NoSuchAlgorithmException, NoSuchPaddingException, 
+								 InvalidKeyException, IOException, 
+								 IllegalBlockSizeException, BadPaddingException, 
+								 InvalidParameterSpecException, InvalidAlgorithmParameterException, 
+								 NoSuchProviderException
 	{
 		Iterator<String> it = imageKeyMap.keySet().iterator();		
 		Cipher ci = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -119,6 +137,15 @@ public class BroadCaster
 			encImgMap.put(filename, ivAttachedCipherText);
 			encImgBase64Map.put(filename, Base64.encodeBase64URLSafeString(ivAttachedCipherText));
 			
+			Provider sunEC = new SunEC();
+	        Security.addProvider(sunEC);
+			KeyPairGenerator kg = KeyPairGenerator.getInstance("EC", "SunEC");
+			kg.initialize(384, new SecureRandom());
+			KeyPair kp = kg.genKeyPair();
+			PublicKey ec_pk = kp.getPublic();
+			PrivateKey ec_sk = kp.getPrivate();
+			
+			
 			//System.out.println(ivAttachedCipherText.length);
 			
 			OutputStream out = null;
@@ -135,7 +162,9 @@ public class BroadCaster
 		}
 	}
 	
-	public void decrypt() throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, IOException
+	public void decrypt() throws NoSuchAlgorithmException, NoSuchPaddingException, 
+								 InvalidKeyException, InvalidAlgorithmParameterException, 
+								 IllegalBlockSizeException, BadPaddingException, IOException
 	{
 		Iterator<String> it = imageKeyMap.keySet().iterator();
 		Cipher ci = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -178,12 +207,13 @@ public class BroadCaster
 		JSONObject JSON_IMG_KEY_BASE64 = new JSONObject();
 		JSONArray jArray = new JSONArray();
 		
-		Iterator<String> it = imageKeyBase64Map.keySet().iterator();
-		while(it.hasNext())
+		Iterator<String> it =  imageKeyBase64Map.keySet().iterator();
+		
+		for(int i = 0; i< imageKeyBase64Map.keySet().size(); i++)
 		{
 			JSONObject jObject = new JSONObject();
 			
-			String fileName = it.next();
+			String fileName = "autogen_"+i+".jpg";
 			String base64Key = imageKeyBase64Map.get(fileName);
 			jObject.put("imgFile", fileName);
 			jObject.put("key", base64Key);
@@ -209,7 +239,6 @@ public class BroadCaster
 		 * Json encrypted cipher text storage
 		 */
 		JSONObject[] JSON_IMG_ENC_BASE64 = new JSONObject[encImgBase64Map.keySet().size()];
-		JSONArray jArray = new JSONArray();
 		
 		int i = 0;
 		Iterator<String> it = encImgBase64Map.keySet().iterator();
@@ -226,7 +255,7 @@ public class BroadCaster
 			FileWriter fw = new FileWriter("C:\\Users\\w4j3yyfd\\workspace\\Crypt\\CipherBin\\"+ fileName + "_cipherText.json");
 			fw.append(JSON_IMG_ENC_BASE64[i].toString(2));
 			fw.close();
-			
+			i++;
 		}
 		
 		return JSON_IMG_ENC_BASE64;
@@ -234,7 +263,10 @@ public class BroadCaster
 	/*
 	 * test
 	 */
-	public static void main(String[] args) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException, InvalidParameterSpecException, InvalidAlgorithmParameterException 
+	public static void main(String[] args) throws NoSuchAlgorithmException, NoSuchPaddingException, 
+												  InvalidKeyException, IOException, IllegalBlockSizeException, 
+												  BadPaddingException, InvalidParameterSpecException, 
+												  InvalidAlgorithmParameterException, NoSuchProviderException 
 	{
 		BroadCaster skg = new BroadCaster("C:\\ImageDB");
 		skg.generateKey();
